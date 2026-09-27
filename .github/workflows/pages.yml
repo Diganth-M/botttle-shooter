@@ -1,4 +1,4 @@
-name: Deploy KAKA Bottle Shooter to GitHub Pages
+name: Deploy DIG SHOOTER Bottle Shooter to GitHub Pages
 on:
   push:
     branches: ["main"]
