@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#08111f">
+<meta name="description" content="KAKA Bottle Shooter — an arcade bottle shooting game.">
+<title>KAKA Bottle Shooter</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="app-shell">
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">🎯</span><div><h1>KAKA</h1><span>BOTTLE SHOOTER</span></div></div>
+  <div class="top-actions"><button id="soundBtn" class="icon-btn">🔊</button><button id="pauseBtn" class="icon-btn">Ⅱ</button></div>
+</header>
+<section class="hud">
+  <div class="stat"><span>ROUND</span><strong id="level">1</strong></div>
+  <div class="stat"><span>BOTTLES</span><strong id="bottles">0/0</strong></div>
+  <div class="stat"><span>BULLETS</span><strong id="bullets">0</strong></div>
+  <div class="stat"><span>SCORE</span><strong id="score">000000</strong></div>
+  <div class="stat best"><span>BEST</span><strong id="best">000000</strong></div>
+</section>
+<section class="game-wrap">
+  <canvas id="gameCanvas" aria-label="Bottle shooting game area"></canvas>
+  <div id="message" class="message hidden"></div>
+  <div id="countdown" class="countdown hidden"></div>
+  <div class="crosshair" id="crosshair"><span></span></div>
+  <div class="hint" id="hint">AIM • CLICK / TAP TO FIRE</div>
+</section>
+<footer class="controls">
+  <div><b>How to play</b><span>Hit every bottle before your bullets run out.</span></div>
+  <button id="restartBtn" class="secondary-btn">↻ RESTART</button>
+</footer>
+</main>
+<script src="game.js"></script>
+</body>
+</html>
