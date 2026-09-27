@@ -1,4 +1,4 @@
-# 🎯 KAKA Bottle Shooter
+# 🎯 DIG SHOOTER Bottle Shooter
 
 A responsive browser arcade game where you shoot every bottle before your bullets run out.
 
