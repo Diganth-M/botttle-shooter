@@ -3,20 +3,22 @@ const c=document.getElementById("gameCanvas"),ctx=c.getContext("2d"),$=id=>docum
 const levelEl=$("level"),targetEl=$("bottles"),ammoEl=$("bullets"),scoreEl=$("score"),bestEl=$("best"),msg=$("message"),count=$("countdown"),cross=$("crosshair"),hint=$("hint");
 let W=0,H=0,dpr=1,round=1,score=0,best=Number(localStorage.getItem("digShooterBest")||0),ammo=0,targets=[],particles=[],shots=[],running=false,paused=false,sound=true,mouse={x:0,y:0},last=0,timeLeft=0,combo=0,roundConfig;
 const rounds=[
- {name:"LIVE THROW",targets:9,ammo:15,speed:1.00,time:0,size:1.00,types:["bottle","bird","plate"]},
- {name:"RAPID THROW",targets:11,ammo:17,speed:1.18,time:0,size:.96,types:["bottle","bird","plate"]},
- {name:"CROSSING SKY",targets:13,ammo:19,speed:1.38,time:48,size:.92,types:["bird","plate","bottle"]},
- {name:"CLAY & GLASS",targets:15,ammo:21,speed:1.58,time:44,size:.88,types:["bottle","plate","bird"]},
- {name:"FULL RANGE",targets:18,ammo:23,speed:1.82,time:40,size:.84,types:["bottle","bird","plate"]},
- {name:"REACTION",targets:21,ammo:25,speed:2.08,time:36,size:.78,types:["bird","plate","bottle"]},
- {name:"FINAL RANGE",targets:25,ammo:28,speed:2.35,time:33,size:.72,types:["bottle","bird","plate"]}
+ // Easier overall: fewer targets, more ammo, larger targets and slower movement.
+ // Each round still increases difficulty through speed, target count and smaller size.
+ {name:"LIVE THROW",targets:7,ammo:13,speed:.72,time:0,size:1.15,types:["bottle","bird","plate"]},
+ {name:"RAPID THROW",targets:8,ammo:15,speed:.82,time:0,size:1.10,types:["bottle","bird","plate"]},
+ {name:"CROSSING SKY",targets:10,ammo:17,speed:.94,time:55,size:1.06,types:["bird","plate","bottle"]},
+ {name:"CLAY & GLASS",targets:12,ammo:19,speed:1.06,time:52,size:1.02,types:["bottle","plate","bird"]},
+ {name:"FULL RANGE",targets:14,ammo:22,speed:1.18,time:48,size:.98,types:["bottle","bird","plate"]},
+ {name:"REACTION",targets:16,ammo:25,speed:1.30,time:45,size:.94,types:["bird","plate","bottle"]},
+ {name:"FINAL RANGE",targets:19,ammo:29,speed:1.44,time:42,size:.90,types:["bottle","bird","plate"]}
 ];
 function resize(){const r=c.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);if(!mouse.x){mouse.x=W/2;mouse.y=H*.45}positionCrosshair()}
 addEventListener("resize",resize);
 function pad(n){return String(Math.max(0,Math.floor(n))).padStart(6,"0")}
 function hud(){levelEl.textContent=round;targetEl.textContent=targets.filter(t=>t.alive).length+"/"+targets.length;ammoEl.textContent=ammo;scoreEl.textContent=pad(score);bestEl.textContent=pad(best)}
 function makeTargets(){targets=[];const q=roundConfig;for(let i=0;i<q.targets;i++){const type=q.types[i%q.types.length],side=i%2===0?1:-1;targets.push({type,alive:true,delay:i*.16,phase:i*.77,side,size:q.size*(type==="bird"?.88:type==="plate"?.92:1),speed:q.speed*(.9+Math.random()*.2),spin:Math.random()*6.28,age:0})}}
-function startRound(n){round=n;roundConfig=rounds[Math.min(n-1,rounds.length-1)];ammo=roundConfig.ammo;timeLeft=roundConfig.time;combo=0;makeTargets();running=false;paused=false;hud();hint.textContent="THROWER ACTIVE • SHOOT BOTTLES • BIRDS • CLAY PLATES";let v=3;count.classList.remove("hidden");count.textContent=v;const timer=setInterval(()=>{v--;if(v>0)count.textContent=v;else{clearInterval(timer);count.textContent="GO";setTimeout(()=>{count.classList.add("hidden");running=true},450)}},650)}
+function startRound(n){round=n;roundConfig=rounds[Math.min(n-1,rounds.length-1)];ammo=roundConfig.ammo;timeLeft=roundConfig.time;combo=0;makeTargets();running=false;paused=false;hud();hint.textContent="EASY START • SHOOT BOTTLES • BIRDS • CLAY PLATES";let v=3;count.classList.remove("hidden");count.textContent=v;const timer=setInterval(()=>{v--;if(v>0)count.textContent=v;else{clearInterval(timer);count.textContent="GO";setTimeout(()=>{count.classList.add("hidden");running=true},450)}},650)}
 function playSound(kind){if(!sound)return;try{window.audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;o.connect(g);g.connect(audioCtx.destination);o.type=kind==="shot"?"square":"sine";o.frequency.setValueAtTime(kind==="shot"?120:kind==="hit"?720:160,t);o.frequency.exponentialRampToValueAtTime(kind==="shot"?55:kind==="hit"?260:80,t+.12);g.gain.setValueAtTime(.035,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.start();o.stop(t+.13)}catch(e){}}
 function burst(x,y,hit){for(let i=0;i<(hit?24:8);i++){const a=Math.random()*Math.PI*2,v=(hit?2.2:1)+Math.random()*4;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,life:1,size:hit?2+Math.random()*3:1+Math.random()*2})}}
 function finish(win,reason){running=false;if(win){const bonus=Math.round(ammo*18+combo*30+(timeLeft?timeLeft*7:0));score+=bonus;if(score>best){best=score;localStorage.setItem("digShooterBest",best)}hud();setTimeout(()=>showPanel("ROUND "+round+" CLEARED",round<rounds.length?roundConfig.name+" • BONUS +"+bonus:"MASTER RANGE COMPLETE • BONUS +"+bonus,round<rounds.length?"NEXT ROUND →":"PLAY AGAIN",()=>startRound(round<rounds.length?round+1:1)),400)}else{setTimeout(()=>showPanel("ROUND FAILED",reason+"<br>Targets remaining: "+targets.filter(t=>t.alive).length,"RETRY ROUND",()=>startRound(round)),400)}}
